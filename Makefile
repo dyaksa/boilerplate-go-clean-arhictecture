@@ -5,6 +5,9 @@ build:
 	go build -o ./bin/main ./cmd/main.go
 
 clean:
-	go mod tidy
+	go mod tidy && rm -rf bin/*
+
+test:
+	go test -v ./...
 
 .PHONY: run
