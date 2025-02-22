@@ -1,4 +1,4 @@
-package log
+package logrus
 
 import (
 	"fmt"
@@ -19,15 +19,6 @@ const (
 	DebugLevel
 	TraceLevel
 )
-
-// const (
-// 	DEBUG = "debug"
-// 	INFO  = "fatal"
-// 	WARN  = "warning"
-// 	ERROR = "error"
-// 	FATAL = "fatal"
-// 	PANIC = "panic"
-// )
 
 type Opts func(*logrusLogger) error
 
@@ -63,6 +54,13 @@ func WithLevel(lvl string) Opts {
 	}
 }
 
+func WithJSONFormatter() Opts {
+	return func(ll *logrusLogger) error {
+		ll.logrus.SetFormatter(&logrus.JSONFormatter{})
+		return nil
+	}
+}
+
 func WithCaller(status bool) Opts {
 	return func(ll *logrusLogger) error {
 		ll.caller = status
@@ -81,14 +79,16 @@ type loggerContext struct {
 }
 
 func New(opts ...Opts) (*logrusLogger, error) {
-	var log = &logrusLogger{}
+	var log = &logrusLogger{
+		logrus: logrus.New(),
+	}
+
 	for _, opt := range opts {
 		if err := opt(log); err != nil {
 			return nil, err
 		}
 	}
 
-	log.logrus = logrus.New()
 	log.logrus.SetLevel(logrus.Level(log.level))
 	log.logrus.SetReportCaller(log.caller)
 
@@ -100,7 +100,7 @@ func (l *logrusLogger) Info(msg string, fn ...log.LoggerContextFn) {
 		return
 	}
 
-	l.logrus.Info(msg, newLoggerContext(fn...).fields)
+	l.logrus.WithFields(newLoggerContext(fn...).fields).Info(msg)
 }
 
 func (l *logrusLogger) Error(msg string, fn ...log.LoggerContextFn) {
@@ -108,7 +108,7 @@ func (l *logrusLogger) Error(msg string, fn ...log.LoggerContextFn) {
 		return
 	}
 
-	l.logrus.Error(msg, newLoggerContext(fn...).fields)
+	l.logrus.WithFields(newLoggerContext(fn...).fields).Error(msg)
 }
 
 func (l *logrusLogger) Warn(msg string, fn ...log.LoggerContextFn) {
@@ -116,7 +116,7 @@ func (l *logrusLogger) Warn(msg string, fn ...log.LoggerContextFn) {
 		return
 	}
 
-	l.logrus.Warn(msg, newLoggerContext(fn...).fields)
+	l.logrus.WithFields(newLoggerContext(fn...).fields).Warn(msg)
 }
 
 func (l *logrusLogger) Debug(msg string, fn ...log.LoggerContextFn) {
@@ -124,7 +124,7 @@ func (l *logrusLogger) Debug(msg string, fn ...log.LoggerContextFn) {
 		return
 	}
 
-	l.logrus.Debug(msg, newLoggerContext(fn...).fields)
+	l.logrus.WithFields(newLoggerContext(fn...).fields).Debug(msg)
 }
 
 func (l *logrusLogger) Fatal(msg string, fn ...log.LoggerContextFn) {
@@ -132,7 +132,7 @@ func (l *logrusLogger) Fatal(msg string, fn ...log.LoggerContextFn) {
 		return
 	}
 
-	l.logrus.Fatal(msg, newLoggerContext(fn...).fields)
+	l.logrus.WithFields(newLoggerContext(fn...).fields).Fatal(msg)
 }
 
 func (l *logrusLogger) Panic(msg string, fn ...log.LoggerContextFn) {
@@ -140,13 +140,14 @@ func (l *logrusLogger) Panic(msg string, fn ...log.LoggerContextFn) {
 		return
 	}
 
-	l.logrus.Panic(msg, newLoggerContext(fn...).fields)
+	l.logrus.WithFields(newLoggerContext(fn...).fields).Panic(msg)
 }
 
 func newLoggerContext(fn ...log.LoggerContextFn) *loggerContext {
 	ctx := &loggerContext{
 		fields: logrus.Fields{},
 	}
+
 	for _, f := range fn {
 		f(ctx)
 	}

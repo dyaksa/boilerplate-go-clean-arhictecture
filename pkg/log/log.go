@@ -1,14 +1,16 @@
 package log
 
-import "time"
+import (
+	"time"
+)
 
 type Logger interface {
-	Info(msg string, fn ...LoggerContext)
-	Error(msg string, fn ...LoggerContext)
-	Warn(msg string, fn ...LoggerContext)
-	Debug(msg string, fn ...LoggerContext)
-	Fatal(msg string, fn ...LoggerContext)
-	Panic(msg string, fn ...LoggerContext)
+	Info(msg string, fn ...LoggerContextFn)
+	Error(msg string, fn ...LoggerContextFn)
+	Warn(msg string, fn ...LoggerContextFn)
+	Debug(msg string, fn ...LoggerContextFn)
+	Fatal(msg string, fn ...LoggerContextFn)
+	Panic(msg string, fn ...LoggerContextFn)
 }
 
 type LoggerContextFn func(LoggerContext)

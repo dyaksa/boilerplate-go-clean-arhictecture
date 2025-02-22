@@ -14,6 +14,8 @@ func main() {
 	ctx := context.Background()
 	app := bootstrap.App(ctx)
 
+	defer app.CloseConnection()
+
 	env := app.Env
 
 	r := router.New()
