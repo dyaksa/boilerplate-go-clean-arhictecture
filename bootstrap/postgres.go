@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dyaksa/boilerplate-go-clean-arhictecture/infrastructure/pqsql"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log"
-	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pqsql"
 )
 
 func NewPostgres(env *Env, l log.Logger) pqsql.Client {

@@ -17,11 +17,11 @@ type Model[T any] interface {
 }
 
 type Collection[T any] interface {
-	QueryContext(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) ([]*T, error)
-	QueryRowContext(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) (*T, error)
+	QueryContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error)
+	QueryRowContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error)
 	ExecContext(ctx context.Context, tx *sql.Tx, query string, args ...any) error
-	Query(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) ([]*T, error)
-	QueryRow(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) (*T, error)
+	Query(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error)
+	QueryRow(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error)
 	Exec(ctx context.Context, tx *sql.Tx, query string, args ...any) error
 }
 
@@ -34,7 +34,7 @@ func (d *Database[T]) ExecContext(ctx context.Context, tx *sql.Tx, query string,
 	return err
 }
 
-func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) ([]*T, error) {
+func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error) {
 	rows, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -44,6 +44,10 @@ func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string
 
 	var results []*T
 	for rows.Next() {
+		if fn != nil {
+			fn(&entity)
+		}
+
 		err = rows.Scan(entity.ScanDestinations()...)
 		if err != nil {
 			return nil, err
@@ -55,7 +59,11 @@ func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string
 	return results, nil
 }
 
-func (d *Database[T]) QueryRowContext(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) (*T, error) {
+func (d *Database[T]) QueryRowContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error) {
+	if fn != nil {
+		fn(&entity)
+	}
+
 	err := tx.QueryRowContext(ctx, query, args...).
 		Scan(entity.ScanDestinations()...)
 
@@ -74,7 +82,7 @@ func (d *Database[T]) Exec(ctx context.Context, tx *sql.Tx, query string, args .
 	return err
 }
 
-func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) ([]*T, error) {
+func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error) {
 	rows, err := tx.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -84,6 +92,10 @@ func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, entit
 
 	var results []*T
 	for rows.Next() {
+		if fn != nil {
+			fn(&entity)
+		}
+
 		err := rows.Scan(entity.ScanDestinations()...)
 		if err != nil {
 			return nil, err
@@ -99,7 +111,11 @@ func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, entit
 	return results, nil
 }
 
-func (d *Database[T]) QueryRow(ctx context.Context, tx *sql.Tx, query string, entity Model[T], args ...any) (*T, error) {
+func (d *Database[T]) QueryRow(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error) {
+	if fn != nil {
+		fn(&entity)
+	}
+
 	err := tx.QueryRow(query, args...).Scan(entity.ScanDestinations()...)
 
 	switch {

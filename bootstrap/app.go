@@ -3,9 +3,10 @@ package bootstrap
 import (
 	"context"
 
+	"github.com/dyaksa/boilerplate-go-clean-arhictecture/infrastructure/crypto"
+	"github.com/dyaksa/boilerplate-go-clean-arhictecture/infrastructure/pqsql"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log/logrus"
-	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pqsql"
 	"github.com/valyala/fasthttp"
 )
 
@@ -13,6 +14,7 @@ type Application struct {
 	Env      *Env
 	Log      log.Logger
 	Postgres pqsql.Client
+	Crypto   crypto.Crypto
 }
 
 func App(ctx context.Context) *Application {
@@ -31,6 +33,7 @@ func App(ctx context.Context) *Application {
 
 	app.Log = ll
 	app.Postgres = NewPostgres(app.Env, app.Log)
+	app.Crypto = NewDerivaleCrypto(app.Log)
 
 	return app
 }
