@@ -6,6 +6,7 @@ import (
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log/logrus"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pqsql"
+	"github.com/valyala/fasthttp"
 )
 
 type Application struct {
@@ -36,4 +37,19 @@ func App(ctx context.Context) *Application {
 
 func (app *Application) CloseConnection() {
 	CloseConnection(app.Postgres, app.Log)
+}
+
+func (app *Application) WrapHandler(next fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(ctx *fasthttp.RequestCtx) {
+		// next adalah handler yang akan dipanggil
+		next(ctx)
+
+		// Log informasi request, termasuk latency
+		app.Log.Info("request",
+			log.String("path", string(ctx.Path())),
+			log.String("method", string(ctx.Method())),
+			log.String("ip", ctx.RemoteIP().String()),
+			log.Any("status", ctx.Response.Header.StatusCode()),
+		)
+	}
 }

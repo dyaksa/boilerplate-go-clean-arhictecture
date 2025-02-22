@@ -3,9 +3,14 @@ package log
 import "time"
 
 func Any(key string, value any) LoggerContextFn {
-	return func(lc LoggerContext) {
-		lc.Any(key, value)
+	if l, ok := value.(Loggable); ok {
+		value = l.AsLog()
 	}
+
+	return func(ctx LoggerContext) {
+		ctx.Any(key, value)
+	}
+
 }
 
 func Bool(key string, value bool) LoggerContextFn {

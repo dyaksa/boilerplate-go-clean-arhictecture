@@ -26,7 +26,7 @@ func main() {
 	route.Setup(r)
 
 	server := &fasthttp.Server{
-		Handler: r.Handler,
+		Handler: app.WrapHandler(r.Handler),
 	}
 
 	go func() {
