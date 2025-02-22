@@ -13,15 +13,15 @@ var _ Collection[any] = &Database[any]{}
 
 type Model[T any] interface {
 	ScanDestinations() []any
-	To() *T
+	To() T
 }
 
 type Collection[T any] interface {
-	QueryContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error)
-	QueryRowContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error)
+	QueryContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]T, error)
+	QueryRowContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (T, error)
 	ExecContext(ctx context.Context, tx *sql.Tx, query string, args ...any) error
-	Query(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error)
-	QueryRow(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error)
+	Query(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]T, error)
+	QueryRow(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (T, error)
 	Exec(ctx context.Context, tx *sql.Tx, query string, args ...any) error
 }
 
@@ -34,7 +34,7 @@ func (d *Database[T]) ExecContext(ctx context.Context, tx *sql.Tx, query string,
 	return err
 }
 
-func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error) {
+func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]T, error) {
 	rows, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string
 
 	defer rows.Close()
 
-	var results []*T
+	var results []T
 	for rows.Next() {
 		if fn != nil {
 			fn(&entity)
@@ -59,7 +59,7 @@ func (d *Database[T]) QueryContext(ctx context.Context, tx *sql.Tx, query string
 	return results, nil
 }
 
-func (d *Database[T]) QueryRowContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error) {
+func (d *Database[T]) QueryRowContext(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (T, error) {
 	if fn != nil {
 		fn(&entity)
 	}
@@ -69,9 +69,9 @@ func (d *Database[T]) QueryRowContext(ctx context.Context, tx *sql.Tx, query str
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, fmt.Errorf("no rows found")
+		return entity.To(), fmt.Errorf("no rows found")
 	case err != nil:
-		return nil, err
+		return entity.To(), err
 	default:
 		return entity.To(), nil
 	}
@@ -82,7 +82,7 @@ func (d *Database[T]) Exec(ctx context.Context, tx *sql.Tx, query string, args .
 	return err
 }
 
-func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]*T, error) {
+func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) ([]T, error) {
 	rows, err := tx.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, fn fu
 
 	defer rows.Close()
 
-	var results []*T
+	var results []T
 	for rows.Next() {
 		if fn != nil {
 			fn(&entity)
@@ -111,7 +111,7 @@ func (d *Database[T]) Query(ctx context.Context, tx *sql.Tx, query string, fn fu
 	return results, nil
 }
 
-func (d *Database[T]) QueryRow(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (*T, error) {
+func (d *Database[T]) QueryRow(ctx context.Context, tx *sql.Tx, query string, fn func(*Model[T]), entity Model[T], args ...any) (T, error) {
 	if fn != nil {
 		fn(&entity)
 	}
@@ -120,9 +120,9 @@ func (d *Database[T]) QueryRow(ctx context.Context, tx *sql.Tx, query string, fn
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, fmt.Errorf("no rows found")
+		return entity.To(), fmt.Errorf("no rows found")
 	case err != nil:
-		return nil, err
+		return entity.To(), err
 	default:
 		return entity.To(), nil
 	}

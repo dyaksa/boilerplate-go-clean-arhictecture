@@ -7,6 +7,7 @@ import (
 
 type Crypto interface {
 	AESFunc() func() (core.PrimitiveAES, error)
+	HashString(s string) string
 }
 
 type derivaleCrypto struct {
@@ -15,6 +16,10 @@ type derivaleCrypto struct {
 
 func (d *derivaleCrypto) AESFunc() func() (core.PrimitiveAES, error) {
 	return d.c.AESFunc()
+}
+
+func (d *derivaleCrypto) HashString(s string) string {
+	return d.c.HashString(s)
 }
 
 func New() (Crypto, error) {

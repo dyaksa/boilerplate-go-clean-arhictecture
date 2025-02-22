@@ -20,6 +20,8 @@ type Env struct {
 	DBPass string `env:"DB_PASS" default:"postgres"`
 	DBName string `env:"DB_NAME" default:"postgres"`
 	DBSSL  string `env:"DB_SSL" default:"disable"`
+
+	ContextTimeout int `env:"CONTEXT_TIMEOUT" default:"10"`
 }
 
 func NewEnv(ctx context.Context) *Env {

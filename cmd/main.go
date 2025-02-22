@@ -6,11 +6,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/api/route"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/bootstrap"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log"
-	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 )
 
@@ -21,18 +21,23 @@ func main() {
 	defer app.CloseConnection()
 
 	env := app.Env
+	router := app.Router
+	l := app.Log
+	db := app.Postgres
+	crypto := app.Crypto
 
-	r := router.New()
-	route.Setup(r)
+	timeout := time.Duration(env.ContextTimeout) * time.Second
+
+	route.Setup(env, timeout, db, l, crypto, router)
 
 	server := &fasthttp.Server{
-		Handler: app.WrapHandler(r.Handler),
+		Handler: app.WrapHandler(app.Router.Handler),
 	}
 
 	go func() {
-		app.Log.Info(fmt.Sprintf("%s is running on port %s", env.AppName, env.Port))
+		l.Info(fmt.Sprintf("%s is running on port %s", env.AppName, env.Port))
 		if err := server.ListenAndServe(fmt.Sprintf(":%s", env.Port)); err != nil {
-			app.Log.Error("failed to start server", log.Error("error", err))
+			l.Error("failed to start server", log.Error("error", err))
 		}
 	}()
 
@@ -40,12 +45,12 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	app.Log.Info("shutting down server")
+	l.Info("shutting down server")
 
 	if err := server.Shutdown(); err != nil {
-		app.Log.Error("failed to shutdown server", log.Error("error", err))
+		l.Error("failed to shutdown server", log.Error("error", err))
 	}
 
-	app.Log.Info("server stopped")
+	l.Info("server stopped")
 
 }

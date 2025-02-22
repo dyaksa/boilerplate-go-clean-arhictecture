@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	"github.com/dyaksa/encryption-pii/crypto/types"
 	"github.com/google/uuid"
 )
@@ -13,4 +15,18 @@ type User struct {
 	Password  string          `json:"password"`
 }
 
-type UserRepository interface{}
+func (u User) ScanDestinations() []interface{} {
+	return []interface{}{
+		&u.ID,
+		&u.Name,
+		&u.Email,
+	}
+}
+
+func (u *User) To() any {
+	return u
+}
+
+type UserRepository interface {
+	GetUserByEmail(ctx context.Context, email_bidx string) (*User, error)
+}

@@ -7,11 +7,13 @@ import (
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/infrastructure/pqsql"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log"
 	"github.com/dyaksa/boilerplate-go-clean-arhictecture/pkg/log/logrus"
+	"github.com/fasthttp/router"
 	"github.com/valyala/fasthttp"
 )
 
 type Application struct {
 	Env      *Env
+	Router   *router.Router
 	Log      log.Logger
 	Postgres pqsql.Client
 	Crypto   crypto.Crypto
@@ -19,7 +21,8 @@ type Application struct {
 
 func App(ctx context.Context) *Application {
 	app := &Application{
-		Env: NewEnv(ctx),
+		Env:    NewEnv(ctx),
+		Router: router.New(),
 	}
 
 	ll, err := logrus.New(
