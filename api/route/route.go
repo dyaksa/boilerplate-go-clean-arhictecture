@@ -14,9 +14,4 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db pqsql.Client, l log.Log
 	publicGroup := r.Group("/api")
 
 	NewUserRoute(env, timeout, db, l, crypto, publicGroup)
-
-	// group.GET("/health", func(ctx *fasthttp.RequestCtx) {
-	// 	ctx.SetStatusCode(fasthttp.StatusOK)
-	// 	ctx.Write([]byte("OK"))
-	// })
 }

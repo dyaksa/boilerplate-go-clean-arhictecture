@@ -19,6 +19,16 @@ func Send(msg, status string) *Wrapper {
 	}
 }
 
+func (w *Wrapper) WithErrors(errs []Error) *Wrapper {
+	w.Errors = errs
+	return w
+}
+
+func (w *Wrapper) WithDetails(details string) *Wrapper {
+	w.Details = details
+	return w
+}
+
 func (w *Wrapper) WithData(data interface{}) *Wrapper {
 	w.Data = data
 	return w
